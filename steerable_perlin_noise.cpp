@@ -118,8 +118,8 @@ void SteerablePerlinNoise::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_eigen_value_sum"), &SteerablePerlinNoise::get_eigen_value_sum);
 	ClassDB::bind_method(D_METHOD("set_eigen_value_sum"), &SteerablePerlinNoise::set_eigen_value_sum);
 
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "frequency"), "set_frequency", "get_frequency");
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "offset"), "set_offset", "get_offset");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "frequency", PROPERTY_HINT_RANGE, "0.,16,0.001,or_less,or_greater"), "set_frequency", "get_frequency");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "offset", PROPERTY_HINT_RANGE, "-1000,1000,0.01,or_less,or_greater"), "set_offset", "get_offset");
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "eigen_value_sum"), "set_eigen_value_sum", "get_eigen_value_sum");
 
