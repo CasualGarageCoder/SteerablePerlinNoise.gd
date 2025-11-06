@@ -7,7 +7,21 @@ The objective here is to provide an implementation as a Godot Module (and GDExte
 
 ## Requirements
 
-This implementation is compatible with Godot 4.x
+This implementation is compatible with Godot 4.x.
+It relies on [glm](https://github.com/g-truc/glm) for internal computation.
+
+## Issues
+
+This version of Perlin noise is effective when it comes to project a 2D noise to a surface using normals. Due to context limitation, the 2D version of the noise is just a sample of the 3D noise for Y = 0.
+
+## Limitations
+
+No GDExtension version is available for now.
+
+## Usage
+
+Create the directory `modules/steerperlin` in your godot repository and recompile all the needed target.
+A new resource called `SteerablePerlinNoise` should be available as a `Noise` resource.
 
 ## Licensing
 

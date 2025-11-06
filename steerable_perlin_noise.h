@@ -27,6 +27,8 @@ SOFTWARE.
 #include "core/typedefs.h"
 #include "modules/noise/noise.h"
 
+#include <glm/glm.hpp>
+
 class SteerablePerlinNoise : public Noise {
 	GDCLASS(SteerablePerlinNoise, Noise);
 	OBJ_SAVE_TYPE(SteerablePerlinNoise);
@@ -34,13 +36,13 @@ class SteerablePerlinNoise : public Noise {
 public:
 	SteerablePerlinNoise();
 
-	virtual ~SteerablePerlinNoise();
+	virtual ~SteerablePerlinNoise() {}
 
 	_FORCE_INLINE_ Vector3 get_frequency() const;
-	_FORCE_INLINE_ void set_frequency(Vector3 &f);
+	_FORCE_INLINE_ void set_frequency(Vector3 f);
 
 	_FORCE_INLINE_ Vector3 get_offset() const;
-	_FORCE_INLINE_ void set_offset(Vector3 &f);
+	_FORCE_INLINE_ void set_offset(Vector3 f);
 
 	_FORCE_INLINE_ real_t get_octave_bias() const;
 	_FORCE_INLINE_ void set_octave_bias(real_t b);
@@ -63,9 +65,52 @@ protected:
 	static void _bind_methods();
 
 private:
-	Vector3 frequency;
+	_FORCE_INLINE_ static real_t random3(glm::vec3);
 
-	Vector3 offset;
+	static glm::vec3 random33(glm::vec3);
+
+	static glm::vec3 rsphere(glm::vec3);
+
+	_FORCE_INLINE_ static real_t smootherstep(real_t);
+
+	_FORCE_INLINE_ static real_t interp(real_t);
+
+	_FORCE_INLINE_ static glm::vec3 interp(glm::vec3);
+
+	_FORCE_INLINE_ static real_t fitrange(real_t, real_t, real_t, real_t, real_t);
+
+	_FORCE_INLINE_ static glm::vec2 fitrange(glm::vec2, real_t, real_t, real_t, real_t);
+
+	_FORCE_INLINE_ static glm::vec3 fitrange(glm::vec3, real_t, real_t, real_t, real_t);
+
+	_FORCE_INLINE_ static glm::mat2 outerprod(glm::vec2, glm::vec2);
+
+	_FORCE_INLINE_ static glm::mat3 outerprod(glm::vec3, glm::vec3);
+
+	_FORCE_INLINE_ static glm::mat3 vec_projector(glm::vec3);
+
+	static glm::mat3 dihedral(glm::vec3, glm::vec3);
+
+	static glm::mat3 make_projection(glm::vec3);
+
+	glm::mat3 generate_metric(glm::vec3) const;
+
+	glm::mat2 generate_metric(glm::vec2) const;
+
+	real_t steerable_perlin(glm::vec3, glm::mat3) const;
+
+	real_t steerable_perlin_projected(glm::vec3, glm::mat2, glm::mat3) const;
+
+	real_t fbm(glm::vec3, glm::mat3) const;
+
+	real_t fbm_artifact_free(glm::vec3, glm::mat3) const;
+
+	real_t fbm_projected(glm::vec3, glm::mat2, glm::mat3) const;
+
+private:
+	glm::vec3 frequency;
+
+	glm::vec3 offset;
 
 	real_t octave_bias;
 
