@@ -38,6 +38,9 @@ public:
 
 	virtual ~SteerablePerlinNoise() {}
 
+	_FORCE_INLINE_ int get_seed() const;
+	_FORCE_INLINE_ void set_seed(int s);
+
 	_FORCE_INLINE_ Vector3 get_frequency() const;
 	_FORCE_INLINE_ void set_frequency(Vector3 f);
 
@@ -108,6 +111,8 @@ private:
 	real_t fbm_projected(glm::vec3, glm::mat2, glm::mat3) const;
 
 private:
+	int seed;
+
 	glm::vec3 frequency;
 
 	glm::vec3 offset;

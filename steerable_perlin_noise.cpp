@@ -24,11 +24,21 @@ SOFTWARE.
 #include "steerable_perlin_noise.h"
 
 SteerablePerlinNoise::SteerablePerlinNoise() :
+		seed(0),
 		frequency(1., 1., 1.),
 		offset(0., 0., 0.),
 		octave_bias(.67),
 		octaves(6),
 		eigen_value_sum(4.) {}
+
+int SteerablePerlinNoise::get_seed() const {
+	return seed;
+}
+
+void SteerablePerlinNoise::set_seed(int s) {
+	seed = s % 16777216;
+	emit_changed();
+}
 
 Vector3 SteerablePerlinNoise::get_frequency() const {
 	return Vector3(frequency.x, frequency.y, frequency.z);
@@ -85,7 +95,7 @@ real_t SteerablePerlinNoise::get_noise_2dv(Vector2 p_v) const {
 	glm::mat2 x = generate_metric(glm::vec2(m.x, m.y));
 	real_t c = fbm_projected(glm::vec3(p_v.x, 0., p_v.y), x, projection);
 	return c;*/
-	return get_noise_3d(p_v.x, 0., p_v.y);
+	return get_noise_3d(p_v.x, p_v.y, 0.);
 }
 
 real_t SteerablePerlinNoise::get_noise_2d(real_t p_x, real_t p_y) const {
@@ -103,6 +113,9 @@ real_t SteerablePerlinNoise::get_noise_3d(real_t p_x, real_t p_y, real_t p_z) co
 }
 
 void SteerablePerlinNoise::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_seed"), &SteerablePerlinNoise::get_seed);
+	ClassDB::bind_method(D_METHOD("set_seed", "s"), &SteerablePerlinNoise::set_seed);
+
 	ClassDB::bind_method(D_METHOD("get_frequency"), &SteerablePerlinNoise::get_frequency);
 	ClassDB::bind_method(D_METHOD("set_frequency", "f"), &SteerablePerlinNoise::set_frequency);
 
@@ -118,6 +131,7 @@ void SteerablePerlinNoise::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_eigen_value_sum"), &SteerablePerlinNoise::get_eigen_value_sum);
 	ClassDB::bind_method(D_METHOD("set_eigen_value_sum"), &SteerablePerlinNoise::set_eigen_value_sum);
 
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "seed"), "set_seed", "get_seed");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "frequency", PROPERTY_HINT_RANGE, "0.,16,0.001,or_less,or_greater"), "set_frequency", "get_frequency");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "offset", PROPERTY_HINT_RANGE, "-1000,1000,0.01,or_less,or_greater"), "set_offset", "get_offset");
 

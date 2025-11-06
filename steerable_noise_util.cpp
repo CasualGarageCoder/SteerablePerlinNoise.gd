@@ -262,9 +262,10 @@ real_t SteerablePerlinNoise::steerable_perlin_projected(glm::vec3 pos, glm::mat2
 
 real_t SteerablePerlinNoise::fbm(glm::vec3 p, glm::mat3 metric) const {
 	real_t out_val = 0.0;
+	glm::vec3 shift_offset = offset + glm::vec3(seed);
 
 	for (int i = 0; i < octaves; ++i) {
-		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * (p + offset) * frequency, metric);
+		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * (p + shift_offset) * frequency, metric);
 	}
 
 	return out_val;
@@ -272,10 +273,11 @@ real_t SteerablePerlinNoise::fbm(glm::vec3 p, glm::mat3 metric) const {
 
 real_t SteerablePerlinNoise::fbm_artifact_free(glm::vec3 p, glm::mat3 metric) const {
 	real_t out_val = 0.0;
+	glm::vec3 shift_offset = offset + glm::vec3(seed);
 
 	for (int i = 0; i < octaves; i++) {
 		//since the weights are always heighest at the .5 position, combine two noises at the same octave to remove artifacts.
-		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * (steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * (p + offset) * frequency, metric) + steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * ((p + offset + glm::vec3(.5)) * frequency), metric)) * .5;
+		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * (steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * (p + shift_offset) * frequency, metric) + steerable_perlin(glm::pow(2.0f, static_cast<real_t>(i)) * ((p + shift_offset + glm::vec3(.5)) * frequency), metric)) * .5;
 	}
 
 	return out_val;
@@ -283,9 +285,10 @@ real_t SteerablePerlinNoise::fbm_artifact_free(glm::vec3 p, glm::mat3 metric) co
 
 real_t SteerablePerlinNoise::fbm_projected(glm::vec3 p, glm::mat2 metric, glm::mat3 projection) const {
 	real_t out_val = 0.0;
+	glm::vec3 shift_offset = offset + glm::vec3(seed);
 
 	for (int i = 0; i < octaves; i++) {
-		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * steerable_perlin_projected(glm::pow(2.0f, static_cast<real_t>(i)) * (p + offset) * frequency, metric, projection);
+		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * steerable_perlin_projected(glm::pow(2.0f, static_cast<real_t>(i)) * (p + shift_offset) * frequency, metric, projection);
 	}
 
 	return out_val;
