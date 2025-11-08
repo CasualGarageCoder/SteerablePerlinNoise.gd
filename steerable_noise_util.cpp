@@ -22,17 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include "core/error/error_macros.h"
 #include "core/math/math_funcs.h"
 #include "core/typedefs.h"
 #include "steerable_perlin_noise.h"
 
 #ifdef REAL_T_IS_DOUBLE
 const glm::vec3 RANDOM3_DOT(64.25375463, 23.27536534, 86.29678483);
+const glm::vec2 RANDOM2_DOT(12.9898, 78.233);
 #define D 59482.7542
+#define D_P 43758.5453123
 #define THREES .33333
 #else
 const glm::vec3 RANDOM3_DOT(64.25375463f, 23.27536534f, 86.29678483f);
+const glm::vec2 RANDOM2_DOT(12.9898f, 78.233f);
 #define D 59482.7542f
+#define D_P 43758.5453123f
 #define THREES .33333f
 #endif
 
@@ -60,6 +65,15 @@ glm::vec3 SteerablePerlinNoise::rsphere(glm::vec3 p) {
 	real_t y = r * sinPhi * sinTheta;
 	real_t z = r * cosPhi;
 	return glm::vec3(x, y, z);
+}
+
+real_t SteerablePerlinNoise::random2(glm::vec2 st) {
+	return glm::fract(glm::sin(glm::dot(st, RANDOM2_DOT))) * D_P;
+}
+
+glm::vec2 SteerablePerlinNoise::rand_dir(glm::vec2 p) {
+	real_t r = random2(p) * Math::PI * 2.;
+	return glm::vec2(glm::cos(r), glm::sin(r));
 }
 
 real_t SteerablePerlinNoise::smootherstep(real_t x) {
@@ -170,9 +184,7 @@ glm::mat2 SteerablePerlinNoise::generate_metric(glm::vec2 p) const {
 	evec1 = glm::normalize(glm::vec2(x.x / x.y, 1));
 
 	float k = .51;
-	int dimensions = 2;
-	float denom = 1. / float(dimensions - 1);
-	glm::vec2 mapped_evals = fitrange(evals, 0.0, 1.0, (eigen_value_sum - k) * denom - 1e-4, k);
+	glm::vec2 mapped_evals = fitrange(evals, 0.0, 1.0, (eigen_value_sum - k) - 1e-4, k);
 	//vec3 mapped_evals = vec3(1.5, 1.5, 1.);
 	return mapped_evals.x * outerprod(evec0, evec0) +
 			mapped_evals.y * outerprod(evec1, evec1);
@@ -260,6 +272,22 @@ real_t SteerablePerlinNoise::steerable_perlin_projected(glm::vec3 pos, glm::mat2
 	return out_val;
 }
 
+glm::vec2 SteerablePerlinNoise::image_grad(glm::vec2 p, float h) const {
+	if (anisotropy_map.is_valid()) {
+		real_t c_l = anisotropy_map->get_noise_2d(p.x - h, p.y);
+		real_t c_r = anisotropy_map->get_noise_2d(p.x + h, p.y);
+		real_t c_u = anisotropy_map->get_noise_2d(p.x, p.y - h);
+		real_t c_d = anisotropy_map->get_noise_2d(p.x, p.y + h);
+
+		float grad_x = c_l - c_r;
+		float grad_y = c_u - c_d;
+		return glm::vec2(grad_x, grad_y) / (2.f * h);
+	} else {
+		WARN_PRINT_ONCE("Invalid anisotropy map.");
+		return glm::vec2(1., 0.);
+	}
+}
+
 real_t SteerablePerlinNoise::fbm(glm::vec3 p, glm::mat3 metric) const {
 	real_t out_val = 0.0;
 	glm::vec3 shift_offset = offset + glm::vec3(seed);
@@ -291,5 +319,29 @@ real_t SteerablePerlinNoise::fbm_projected(glm::vec3 p, glm::mat2 metric, glm::m
 		out_val += glm::pow(octave_bias, static_cast<real_t>(i)) * steerable_perlin_projected(glm::pow(2.0f, static_cast<real_t>(i)) * (p + shift_offset) * frequency, metric, projection);
 	}
 
+	return out_val;
+}
+
+real_t SteerablePerlinNoise::aniso_perlin(glm::vec2 p, glm::mat2 metric) const {
+	glm::vec2 noise_p = floor(p);
+	glm::vec2 noise_f = fract(p);
+	real_t out_val = 0.0;
+	int start = -(noise_order);
+	int end = noise_order + 1;
+	float scale = 2. / float(abs(start) + end + 1);
+
+	for (int i = start; i <= end; i++) {
+		for (int j = start; j <= end; j++) {
+			glm::vec2 o = glm::vec2(i, j);
+			glm::vec2 g = noise_p + o;
+			glm::vec2 r = rand_dir(g); // random vector
+			glm::vec2 v = o - noise_f; //dir to corner
+			glm::vec2 metric_v = v * metric;
+			float d = dot(r, metric_v); //inner product
+			float w = interp(v.x * scale) * interp(v.y * scale);
+			w *= interp(dot(v, metric_v)); //aniso weights
+			out_val += d * w;
+		}
+	}
 	return out_val;
 }

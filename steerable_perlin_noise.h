@@ -47,11 +47,26 @@ public:
 	_FORCE_INLINE_ Vector3 get_offset() const;
 	_FORCE_INLINE_ void set_offset(Vector3 f);
 
+	_FORCE_INLINE_ Vector3 get_scale() const;
+	_FORCE_INLINE_ void set_scale(Vector3 s);
+
+	_FORCE_INLINE_ real_t get_anisotropy_strength() const;
+	_FORCE_INLINE_ void set_anisotropy_strength(real_t a);
+
+	_FORCE_INLINE_ Vector2 get_anisotropy_vector_scale() const;
+	_FORCE_INLINE_ void set_anisotropy_vector_scale(Vector2 v);
+
+	_FORCE_INLINE_ Ref<Noise> get_anisotropy_map() const;
+	_FORCE_INLINE_ void set_anisotropy_map(Ref<Noise> t);
+
 	_FORCE_INLINE_ real_t get_octave_bias() const;
 	_FORCE_INLINE_ void set_octave_bias(real_t b);
 
 	_FORCE_INLINE_ int get_octaves() const;
 	_FORCE_INLINE_ void set_octaves(int c);
+
+	_FORCE_INLINE_ int get_noise_order() const;
+	_FORCE_INLINE_ void set_noise_order(int o);
 
 	_FORCE_INLINE_ real_t get_eigen_value_sum() const;
 	_FORCE_INLINE_ void set_eigen_value_sum(real_t s);
@@ -68,11 +83,17 @@ protected:
 	static void _bind_methods();
 
 private:
+	_FORCE_INLINE_ void _changed() { emit_changed(); }
+
 	_FORCE_INLINE_ static real_t random3(glm::vec3);
 
 	static glm::vec3 random33(glm::vec3);
 
 	static glm::vec3 rsphere(glm::vec3);
+
+	_FORCE_INLINE_ static real_t random2(glm::vec2);
+
+	_FORCE_INLINE_ static glm::vec2 rand_dir(glm::vec2);
 
 	_FORCE_INLINE_ static real_t smootherstep(real_t);
 
@@ -96,6 +117,8 @@ private:
 
 	static glm::mat3 make_projection(glm::vec3);
 
+	glm::vec2 image_grad(glm::vec2, real_t) const;
+
 	glm::mat3 generate_metric(glm::vec3) const;
 
 	glm::mat2 generate_metric(glm::vec2) const;
@@ -110,6 +133,8 @@ private:
 
 	real_t fbm_projected(glm::vec3, glm::mat2, glm::mat3) const;
 
+	real_t aniso_perlin(glm::vec2, glm::mat2) const;
+
 private:
 	int seed;
 
@@ -117,9 +142,19 @@ private:
 
 	glm::vec3 offset;
 
+	glm::vec3 scale;
+
+	real_t anisotropy_strength;
+
+	glm::vec2 anisotropy_vector_scale;
+
+	Ref<Noise> anisotropy_map;
+
 	real_t octave_bias;
 
 	int octaves;
+
+	int noise_order;
 
 	real_t eigen_value_sum;
 };
